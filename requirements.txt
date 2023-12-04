@@ -1,0 +1,4 @@
+Django==4.2
+mollie_api_python==3.6.0
+oscar==2.2.0
+setuptools==68.2.2

@@ -13,7 +13,7 @@ logger = logging.getLogger('oscar.checkout')
 
 class PaymentDetailsView(oscar_views.PaymentDetailsView):
     def handle_payment(self, order_number, total, **kwargs):
-        submission = kwargs['submission']
+        submission = "" #kwargs['submission']
 
         # Create new Mollie Payment!
         facade = Facade()

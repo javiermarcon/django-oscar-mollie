@@ -6,7 +6,7 @@ from django.conf import settings
 from django.http import Http404
 from django.urls import reverse
 
-import Mollie
+from mollie.api.client import Client
 from oscar.apps.payment.exceptions import UnableToTakePayment
 from oscar.core.loading import get_class, get_model
 
@@ -41,19 +41,26 @@ def _lazy_get_models():
 
 class Facade(object):
     def __init__(self):
-        self.mollie = Mollie.API.Client()
-        self.mollie.setApiKey(settings.MOLLIE_API_KEY)
+        self.mollie = Client()
+        self.mollie.set_api_key(settings.MOLLIE_API_KEY)
+
+    def get_mollie_protocol_setting(self):
+        if hasattr(settings, 'OSCAR_MOLLIE_HTTPS') and settings.OSCAR_MOLLIE_HTTPS:
+            return 'https'
+        else:
+            return 'http'
 
     def create_payment(self, order_number, total, description=None, redirect_url=None):
         if not redirect_url:
             redirect_url = reverse('customer:order', kwargs={'order_number': order_number})
 
         site = Site.objects.get_current()
-        protocol = 'https' if settings.OSCAR_MOLLIE_HTTPS else 'http'
+        protocol = self.get_mollie_protocol_setting()
         redirect_url = '%s://%s%s' % (protocol, site.domain, redirect_url)
 
+        currency = settings.OSCAR_DEFAULT_CURRENCY
         payment = self.mollie.payments.create({
-            'amount': float(total),
+            'amount': {"currency": currency, "value":str(total)},
             'description': description or self.get_default_description(order_number),
             'redirectUrl': redirect_url,
             'webhookUrl': self.get_webhook_url(),
@@ -77,8 +84,8 @@ class Facade(object):
     def get_webhook_url(self):
         # TODO: Make this related to this app without explicit namespace declaration...?
         site = Site.objects.get_current()
-        protocol = 'https' if settings.OSCAR_MOLLIE_HTTPS else 'http'
-        return '%s://%s%s' % (protocol, site.domain, reverse('mollie_oscar:webhook'))
+        protocol = self.get_mollie_protocol_setting()
+        return None #'%s://%s%s' % (protocol, site.domain, reverse('mollie_oscar:webhook'))
 
     def get_order(self, payment_id, order_nr=None):
         _lazy_get_models()
