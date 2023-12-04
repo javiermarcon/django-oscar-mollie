@@ -3,6 +3,8 @@
 
 # Mollie API client for Django Oscar #
 
+This version is being modified to work with django-oscar version 3 and django version 4
+
 Payment gateway integration between [Mollie API client](https://github.com/mollie/mollie-api-python) and [Django Oscar](https://github.com/django-oscar/django-oscar).
 
 [![PyPI version](https://badge.fury.io/py/django-oscar-mollie.svg)](https://badge.fury.io/py/django-oscar-mollie)
